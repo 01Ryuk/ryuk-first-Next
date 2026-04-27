@@ -11,6 +11,6 @@ export default async function DashboardPage() {
   if (!session) {
     redirect("/auth/login");
   }
-
+  // If session exists, render the client component with session data
   return <DashboardClientPage session={session} />;
 }
