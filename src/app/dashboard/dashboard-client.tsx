@@ -7,17 +7,17 @@ import { useRouter } from "next/navigation";
 
 type Session = typeof auth.$Infer.Session;
 
-export default function DashboardClientPage(
-  { session }: { session: Session }
-) {
+export default function DashboardClientPage({ session }: { session: Session | null }) {
   const router = useRouter();
+
+  if (!session) return null; // 👈 add this
+
   const user = session.user;
 
   const handleSignOut = async () => {
     await signOut();
     router.push("/auth/login");
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Main Content */}
