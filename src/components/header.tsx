@@ -8,6 +8,21 @@ import { useRouter } from "next/navigation";
 
 type Session = typeof auth.$Infer.Session;
 
+// function ThemeToggle() {
+//   const toggle = () => {
+//     const isDark = document.documentElement.classList.toggle("dark");
+//     localStorage.setItem("theme", isDark ? "dark" : "light");
+//   };
+//   return (
+//     <button
+//       onClick={toggle}
+//       className="text-sm hover:text-gray-300 transition-colors"
+//     >
+//       🌙 / ☀️
+//     </button>
+//   );
+// }
+
 export default function Header({ session }: { session: Session | null }) {
   const router = useRouter();
 
@@ -15,6 +30,7 @@ export default function Header({ session }: { session: Session | null }) {
     await signOut();
     router.push("/auth/login");
   };
+
   return (
     <div className="bg-gray-800 text-white py-4">
       <nav className="max-w-7xl mx-auto px-4 flex justify-between items-center">
@@ -29,57 +45,45 @@ export default function Header({ session }: { session: Session | null }) {
           />
           <span className="text-xl font-bold">RYUK</span>
         </Link>
-        <ul className="flex items-center space-x-6">
-        {session && (
-          <>
-          <li>
-            <Link
-              href="/post"
-              className="hover:text-gray-300 transition-colors"
-              >
-              Posts
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/dashboard"
-              className="hover:text-gray-300 transition-colors"
-              >
-              Dashboard
-            </Link>
-          </li>
-  
-            <li>
-              <button
-                onClick={handleSignOut}
-                className="hover:text-gray-300 transition-colors"
-                >
-                Sign out
-              </button>
-            </li>
-                </>
+        <ul className="flex items-center space-x-6" suppressHydrationWarning>
+          {session && (
+            <>
+              <li>
+                <Link href="/post" className="hover:text-gray-300 transition-colors">
+                  Posts
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard" className="hover:text-gray-300 transition-colors">
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <button onClick={handleSignOut} className="hover:text-gray-300 transition-colors">
+                  Sign out
+                </button>
+              </li>
+            </>
           )}
 
           {!session && (
             <>
               <li>
-                <Link
-                  href="/auth/login"
-                  className="hover:text-gray-300 transition-colors"
-                >
+                <Link href="/auth/login" className="hover:text-gray-300 transition-colors">
                   Sign In
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/auth/signup"
-                  className="hover:text-gray-300 transition-colors"
-                >
+                <Link href="/auth/signup" className="hover:text-gray-300 transition-colors">
                   Sign up
                 </Link>
               </li>
             </>
           )}
+
+          {/* <li suppressHydrationWarning>
+            <ThemeToggle />
+          </li> */}
         </ul>
       </nav>
     </div>
