@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* @variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  @apply bg-white text-black dark:bg-gray-950 dark:text-white;
+} */
 /* :root {
   --background: #ffffff;
   --foreground: #171717;
