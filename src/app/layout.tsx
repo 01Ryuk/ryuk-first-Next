@@ -26,23 +26,30 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  return (
+ return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col">
+        {/* <script dangerouslySetInnerHTML={{ __html: `
+          const saved = localStorage.getItem('theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved === 'dark' || (!saved && prefersDark)) {
+            document.documentElement.classList.add('dark');
+          }
+        `}} /> */}
         <Header session={session} />
         <main className="flex-1">
           {children}
         </main>
         <Footer />
-        </body>
+      </body>
     </html>
   );
 }
