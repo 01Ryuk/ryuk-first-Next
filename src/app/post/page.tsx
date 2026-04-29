@@ -2,6 +2,8 @@ import { deletePost } from "@/src/actions/actions";
 import { prisma } from "@/src/lib/prisma";
 import Link from "next/link";
 import { Eye, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { auth } from "@/src/lib/auth";
+import { headers } from "next/headers";
 
 const POSTS_PER_PAGE = 10;
 
@@ -14,12 +16,17 @@ export default async function page({
   const currentPage = parseInt(page || "1", 10);
   const skip = (currentPage - 1) * POSTS_PER_PAGE;
 
+  // get the logged in user's id
+  const session = await auth.api.getSession({ headers: await headers() });
+  const userId = session?.user.id;
+
   const [posts, postCount] = await Promise.all([
     prisma.post.findMany({
       select: {
         id: true,
         title: true,
         slug: true,
+        authorId: true, //need this to compare ownership
       },
       orderBy: {
         createdAt: "asc",
@@ -52,19 +59,25 @@ export default async function page({
                     <Eye size={16} />
                   </button>
                 </Link>
-                <Link href={`/post/${post.slug}/edit`}>
-                  <button className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    <Pencil size={16} />
-                  </button>
-                </Link>
-                <form action={deletePost.bind(null, post.id)}>
-                  <button
-                    type="submit"
-                    className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </form>
+
+                {/* only show edit/delete if the logged in user is the author */}
+                {post.authorId === userId && (
+                  <>
+                    <Link href={`/post/${post.slug}/edit`}>
+                      <button className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                        <Pencil size={16} />
+                      </button>
+                    </Link>
+                    <form action={deletePost.bind(null, post.id)}>
+                      <button
+                        type="submit"
+                        className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </form>
+                  </>
+                )}
               </div>
             </li>
           ))}
