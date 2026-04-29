@@ -1,6 +1,8 @@
 import { edit } from "@/src/actions/actions";
+import { auth } from "@/src/lib/auth";
 import { prisma } from "@/src/lib/prisma";
-import { notFound } from "next/navigation";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 
 interface EditPostPageProps {
   params: Promise<{
@@ -15,15 +17,26 @@ export default async function EditPostPage({ params }: EditPostPageProps) {
     notFound();
   }
 
-  const post = await prisma.post.findUnique({
-    where: {
-      slug,
-    },
-  });
+  // const post = await prisma.post.findUnique({
+  //   where: {
+  //     slug,
+  //   },
+  // });
 
-  if (!post) {
-    notFound();
-  }
+  // if (!post) {
+  //   notFound();
+  // }
+
+  // verify the user is logged in and is the author of the post before allowing them to edit
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) redirect("/auth/login");
+
+  const post = await prisma.post.findUnique({ where: { slug } });
+  if (!post) throw new Error("Post not found");
+  // only the author of the post can edit it
+  if (post.authorId !== session.user.id) redirect("/post");
 
   return (
     <div className="text-center pt-12">
