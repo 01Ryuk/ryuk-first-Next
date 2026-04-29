@@ -9,6 +9,12 @@ import { headers } from "next/headers";
 // --- Post Actions ---
 
 export async function createPost(formData: FormData) {
+  //Get sessions and attach authorId to the post
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) redirect("/auth/login");
+  
   try {
     await prisma.post.create({
       data: {
@@ -18,6 +24,7 @@ export async function createPost(formData: FormData) {
           .replace(/\s+/g, "-"),
         content: formData.get("content") as string,
         published: true,
+        authorId: session!.user.id, //tie each posts to the logged in user
       },
     });
   } catch (error) {
@@ -34,6 +41,16 @@ export async function createPost(formData: FormData) {
 }
 
 export async function edit(id: string, formData: FormData) {
+   //verify the user is logged in and is the author of the post before allowing them to edit
+   const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) redirect("/auth/login");
+
+  const post = await prisma.post.findUnique({ where: { id } });
+  if (!post) throw new Error("Post not found");
+  // only the author of the post can edit it
+  if (post.authorId !== session.user.id) throw new Error("Unauthorized");
   const newTitle = formData.get("title") as string;
   const newSlug = newTitle
     .toLowerCase()
@@ -55,6 +72,16 @@ export async function edit(id: string, formData: FormData) {
 }
 
 export async function deletePost(id: string, formData: FormData) {
+    //verify the user is logged in and is the author of the post before allowing them to delete
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    if (!session) redirect("/auth/login");
+  
+    const post = await prisma.post.findUnique({ where: { id } });
+    if (!post) throw new Error("Post not found");
+    // only the author of the post can delete it
+    if (post.authorId !== session.user.id) throw new Error("Unauthorized");
   await prisma.post.delete({ where: { id } });
   revalidatePath("/post");
 }
