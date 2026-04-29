@@ -178,9 +178,9 @@ export default function LoginClientPage() {
         </p>
         <p className="text-center mt-4 text-gray-600">
           Forgot Password?
-          <Link href="#"
-            className="text-blue-500 hover:text-blue-700 ml-1">
-          Password Reset</Link>
+          <Link href="#" className="text-blue-500 hover:text-blue-700 ml-1">
+            Password Reset
+          </Link>
         </p>
       </div>
     </div>
