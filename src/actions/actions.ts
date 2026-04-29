@@ -14,7 +14,7 @@ export async function createPost(formData: FormData) {
     headers: await headers(),
   });
   if (!session) redirect("/auth/login");
-  
+
   try {
     await prisma.post.create({
       data: {
@@ -41,8 +41,8 @@ export async function createPost(formData: FormData) {
 }
 
 export async function edit(id: string, formData: FormData) {
-   //verify the user is logged in and is the author of the post before allowing them to edit
-   const session = await auth.api.getSession({
+  //verify the user is logged in and is the author of the post before allowing them to edit
+  const session = await auth.api.getSession({
     headers: await headers(),
   });
   if (!session) redirect("/auth/login");
@@ -72,16 +72,16 @@ export async function edit(id: string, formData: FormData) {
 }
 
 export async function deletePost(id: string, formData: FormData) {
-    //verify the user is logged in and is the author of the post before allowing them to delete
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (!session) redirect("/auth/login");
-  
-    const post = await prisma.post.findUnique({ where: { id } });
-    if (!post) throw new Error("Post not found");
-    // only the author of the post can delete it
-    if (post.authorId !== session.user.id) throw new Error("Unauthorized");
+  //verify the user is logged in and is the author of the post before allowing them to delete
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) redirect("/auth/login");
+
+  const post = await prisma.post.findUnique({ where: { id } });
+  if (!post) throw new Error("Post not found");
+  // only the author of the post can delete it
+  if (post.authorId !== session.user.id) throw new Error("Unauthorized");
   await prisma.post.delete({ where: { id } });
   revalidatePath("/post");
 }
@@ -94,7 +94,8 @@ export const signUp = async (email: string, password: string, name: string) => {
       body: { email, password, name },
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create account";
+    const message =
+      error instanceof Error ? error.message : "Failed to create account";
     return { error: message };
   }
   redirect("/auth/login");
