@@ -22,6 +22,7 @@ export default async function Home() {
           Sign Up
         </Link>
       </div> */}
+      
     </div>
   );
 }
