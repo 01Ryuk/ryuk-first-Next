@@ -49,17 +49,26 @@ export default function Header({ session }: { session: Session | null }) {
           {session && (
             <>
               <li>
-                <Link href="/post" className="hover:text-gray-300 transition-colors">
+                <Link
+                  href="/post"
+                  className="hover:text-gray-300 transition-colors"
+                >
                   Posts
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-gray-300 transition-colors">
+                <Link
+                  href="/dashboard"
+                  className="hover:text-gray-300 transition-colors"
+                >
                   Dashboard
                 </Link>
               </li>
               <li>
-                <button onClick={handleSignOut} className="hover:text-gray-300 transition-colors">
+                <button
+                  onClick={handleSignOut}
+                  className="hover:text-gray-300 transition-colors"
+                >
                   Sign out
                 </button>
               </li>
@@ -69,12 +78,18 @@ export default function Header({ session }: { session: Session | null }) {
           {!session && (
             <>
               <li>
-                <Link href="/auth/login" className="hover:text-gray-300 transition-colors">
+                <Link
+                  href="/auth/login"
+                  className="hover:text-gray-300 transition-colors"
+                >
                   Sign In
                 </Link>
               </li>
               <li>
-                <Link href="/auth/signup" className="hover:text-gray-300 transition-colors">
+                <Link
+                  href="/auth/signup"
+                  className="hover:text-gray-300 transition-colors"
+                >
                   Sign up
                 </Link>
               </li>
