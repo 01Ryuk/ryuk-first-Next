@@ -1,13 +1,17 @@
 "use client";
-import { signOut } from "@/src/actions/actions";  
-import { auth } from "@/src/lib/auth"; 
+import { signOut } from "@/src/actions/actions";
+import { auth } from "@/src/lib/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type Session = typeof auth.$Infer.Session;
 
-export default function DashboardClientPage({ session }: { session: Session | null }) {
+export default function DashboardClientPage({
+  session,
+}: {
+  session: Session | null;
+}) {
   const router = useRouter();
 
   if (!session) return null; // 👈 add this
@@ -37,9 +41,9 @@ export default function DashboardClientPage({ session }: { session: Session | nu
                 <div className="flex items-center space-x-3">
                   <Image
                     className="h-10 w-10 rounded-full"
-                   src="/ryuk.png"
-            width={40}
-            height={40}
+                    src="/ryuk.png"
+                    width={40}
+                    height={40}
                     alt={user.name}
                   />
                   <div className="text-sm">
