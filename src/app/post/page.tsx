@@ -27,6 +27,11 @@ export default async function page({
         title: true,
         slug: true,
         authorId: true, //need this to compare ownership
+        author: {
+          select: {
+            name: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "asc",
@@ -52,7 +57,12 @@ export default async function page({
               key={post.id}
               className="mb-2 flex items-center justify-center gap-2"
             >
-              <span className="w-40 text-left truncate">{post.title}</span>
+              <div className="w-40 text-left">
+                <span className="truncate block">{post.title}</span>
+                <span className="text-xs text-gray-500">
+                  by {post.author?.name ?? "Unknown"}
+                </span>
+              </div>{" "}
               <div className="flex gap-1">
                 <Link href={`/post/${post.slug}`}>
                   <button className="p-2 bg-green-500 text-white rounded hover:bg-green-600">
