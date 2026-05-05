@@ -102,12 +102,34 @@ export const signUp = async (email: string, password: string, name: string) => {
 };
 
 export const signIn = async (email: string, password: string) => {
+  // check if this email exists but only has social accounts
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { accounts: true },
+  });
+
+  if (user) {
+    const hasSocialAccount = user.accounts.some(
+      (account) => account.providerId !== "credential"
+    );
+    const hasCredentialAccount = user.accounts.some(
+      (account) => account.providerId === "credential"
+    );
+
+    if (hasSocialAccount && !hasCredentialAccount) {
+      const providers = user.accounts.map((a) => a.providerId).join(" or ");
+      return {
+        error: `This email is linked to a ${providers} account. Please sign in with ${providers} instead, or reset your password to set one.`,
+      };
+    }
+  }
+
   try {
     await auth.api.signInEmail({
       body: { email, password },
     });
   } catch (error: unknown) {
-    return { error: (error as Error)?.message || "Invalid email or password" };
+    return { error: "Invalid email or password" };
   }
   redirect("/dashboard");
 };
