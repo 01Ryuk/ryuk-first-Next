@@ -1,11 +1,34 @@
 import { deletePost } from "@/src/actions/actions";
 import { prisma } from "@/src/lib/prisma";
 import Link from "next/link";
-import { Eye, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, MessageCircle, Heart } from "lucide-react";
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
 
 const POSTS_PER_PAGE = 10;
+
+// helper to format date like "May 1" or "2d ago"
+function formatDate(date: Date) {
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
+
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+
+  return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+// helper to get initials for the avatar placeholder
+function getInitials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export default async function page({
   searchParams,
@@ -16,7 +39,6 @@ export default async function page({
   const currentPage = parseInt(page || "1", 10);
   const skip = (currentPage - 1) * POSTS_PER_PAGE;
 
-  // get the logged in user's id
   const session = await auth.api.getSession({ headers: await headers() });
   const userId = session?.user.id;
 
@@ -26,16 +48,14 @@ export default async function page({
         id: true,
         title: true,
         slug: true,
-        authorId: true, //need this to compare ownership
+        content: true,
+        createdAt: true,
+        authorId: true,
         author: {
-          select: {
-            name: true,
-          },
+          select: { name: true },
         },
       },
-      orderBy: {
-        createdAt: "asc",
-      },
+      orderBy: { createdAt: "desc" },
       take: POSTS_PER_PAGE,
       skip,
     }),
@@ -47,93 +67,130 @@ export default async function page({
   const hasPrevPage = currentPage > 1;
 
   return (
-    <div className="text-center pt-12">
-      <h1 className="text-3xl capitalize font-bold">All Posts ({postCount})</h1>
+    <div className="max-w-2xl mx-auto px-4 py-8">
 
-      <div className="mt-4 mb-10">
-        <ul>
-          {posts.map((post) => (
-            <li
+      {/* top bar */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-xl font-bold text-gray-900">Feed</h1>
+        <Link
+          href="/post/create"
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-full hover:bg-indigo-700 transition-colors"
+        >
+          <Plus size={16} /> New Post
+        </Link>
+      </div>
+
+      {/* feed */}
+      <div className="flex flex-col gap-4">
+        {posts.map((post) => {
+          const authorName = post.author?.name ?? "Unknown";
+          const isAuthor = post.authorId === userId;
+          // trim content to 120 chars for the excerpt
+          const excerpt = post.content.length > 120
+            ? post.content.slice(0, 120) + "..."
+            : post.content;
+
+          return (
+            <div
               key={post.id}
-              className="mb-2 flex items-center justify-center gap-2"
+              className="bg-white rounded-xl border border-gray-200 p-5 hover:border-gray-300 transition-colors"
             >
-              <div className="w-40 text-left">
-                <span className="truncate block">{post.title}</span>
-                <span className="text-xs text-gray-500">
-                  by {post.author?.name ?? "Unknown"}
-                </span>
-              </div>{" "}
-              <div className="flex gap-1">
-                <Link href={`/post/${post.slug}`}>
-                  <button className="p-2 bg-green-500 text-white rounded hover:bg-green-600">
-                    <Eye size={16} />
-                  </button>
-                </Link>
+              {/* card header — avatar + name + date */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  {/* avatar placeholder using initials — swap for real image later */}
+                  <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-sm font-semibold flex-shrink-0">
+                    {getInitials(authorName)}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{authorName}</p>
+                    {/* formatDate turns the raw date into "2h ago" style */}
+                    <p className="text-xs text-gray-400">{formatDate(post.createdAt)}</p>
+                  </div>
+                </div>
 
-                {/* only show edit/delete if the logged in user is the author */}
-                {post.authorId === userId && (
-                  <>
-                    <Link href={`/post/${post.slug}/edit`}>
-                      <button className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                        <Pencil size={16} />
-                      </button>
+                {/* edit/delete — only visible to the author, subtle not loud */}
+                {isAuthor && (
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/post/${post.slug}/edit`}
+                      className="text-xs text-gray-400 hover:text-blue-500 transition-colors"
+                    >
+                      <Pencil size={14} />
                     </Link>
                     <form action={deletePost.bind(null, post.id)}>
                       <button
                         type="submit"
-                        className="p-2 bg-red-500 text-white rounded hover:bg-red-600"
+                        className="text-xs text-gray-400 hover:text-red-500 transition-colors"
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={14} />
                       </button>
                     </form>
-                  </>
+                  </div>
                 )}
               </div>
-            </li>
-          ))}
-        </ul>
+
+              {/* post title + excerpt — whole block links to the post */}
+              <Link href={`/post/${post.slug}`}>
+                <h2 className="font-bold text-gray-900 mb-1 hover:text-indigo-600 transition-colors">
+                  {post.title}
+                </h2>
+                <p className="text-sm text-gray-500 leading-relaxed">{excerpt}</p>
+              </Link>
+
+              {/* card footer — placeholder counts for likes/comments */}
+              <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100">
+                <button className="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors text-sm">
+                  <Heart size={16} />
+                  <span>0</span>
+                </button>
+                <button className="flex items-center gap-1.5 text-gray-400 hover:text-indigo-500 transition-colors text-sm">
+                  <MessageCircle size={16} />
+                  <span>0</span>
+                </button>
+                <Link
+                  href={`/post/${post.slug}`}
+                  className="ml-auto text-xs text-indigo-500 hover:text-indigo-700 font-medium"
+                >
+                  Read more →
+                </Link>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Pagination */}
+      {/* pagination */}
       <div className="flex justify-center items-center gap-4 mt-8">
         {hasPrevPage ? (
           <Link
             href={`/post?page=${currentPage - 1}`}
-            className="flex items-center gap-1 px-3 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="flex items-center gap-1 px-3 py-2 bg-gray-100 rounded-full hover:bg-gray-200 text-sm transition-colors"
           >
             <ChevronLeft size={16} /> Previous
           </Link>
         ) : (
-          <span className="flex items-center gap-1 px-3 py-2 bg-gray-100 text-gray-400 rounded">
+          <span className="flex items-center gap-1 px-3 py-2 text-gray-300 text-sm">
             <ChevronLeft size={16} /> Previous
           </span>
         )}
 
-        <span className="text-sm">
-          Page {currentPage} of {totalPages}
+        <span className="text-sm text-gray-500">
+          {currentPage} / {totalPages}
         </span>
 
         {hasNextPage ? (
           <Link
             href={`/post?page=${currentPage + 1}`}
-            className="flex items-center gap-1 px-3 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="flex items-center gap-1 px-3 py-2 bg-gray-100 rounded-full hover:bg-gray-200 text-sm transition-colors"
           >
             Next <ChevronRight size={16} />
           </Link>
         ) : (
-          <span className="flex items-center gap-1 px-3 py-2 bg-gray-100 text-gray-400 rounded">
+          <span className="flex items-center gap-1 px-3 py-2 text-gray-300 text-sm">
             Next <ChevronRight size={16} />
           </span>
         )}
-      </div>
-
-      <div className="mt-8">
-        <Link
-          href="/post/create"
-          className="text-blue-500 hover:text-blue-700 font-semibold"
-        >
-          Create a new post
-        </Link>
       </div>
     </div>
   );
