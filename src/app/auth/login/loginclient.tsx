@@ -11,25 +11,26 @@ export default function LoginClientPage() {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+  e.preventDefault();
+  setIsLoading(true);
+  setError("");
 
-    try {
-      const result = await signIn(email, password);
-      if (!result) {
-        setError("Invalid email or password");
-      }
-    } catch (err) {
-      setError(
-        `Authentication error: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`,
-      );
-    } finally {
-      setIsLoading(false);
+  try {
+    const result = await signIn(email, password);
+    if (result?.error) {
+      setError(result.error); // 👈 read the actual error message
     }
-  };
+  } catch (err) {
+    if (err instanceof Error && err.message === "NEXT_REDIRECT") return;
+    setError(
+      `Authentication error: ${
+        err instanceof Error ? err.message : "Unknown error"
+      }`
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleSocialAuth = async (provider: "google" | "github") => {
     setIsLoading(true);
