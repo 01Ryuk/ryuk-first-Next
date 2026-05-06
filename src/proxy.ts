@@ -13,7 +13,6 @@ export function proxy(request: NextRequest) {
   const protectedRoutes = [
     "/dashboard",
     "/post/create",
-    "/post/:slug/edit",
     "/post",
   ];
 
