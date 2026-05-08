@@ -5,9 +5,8 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "../generated/prisma";
 import { auth } from "../lib/auth";
 import { headers } from "next/headers";
-import { Resend } from "resend";
 
-const resend =new Resend(process.env.RESEND_API_KEY);
+// Note: email is handled via better-auth sendResetPassword callback
 
 // --- Post Actions ---
 
@@ -156,3 +155,34 @@ export const signOut = async () => {
   });
   redirect("/auth/login");
 };
+
+export const forgetPassword = async (email: string) => {
+  try {
+    await auth.api.requestPasswordReset({
+      body: {
+        email,
+        redirectTo: "/auth/reset-password",
+      },
+    });
+    return { success: true };
+  } catch (error: unknown) {
+    const message = (error as Error)?.message || "";
+    return { error: message || "Something went wrong. Please try again." };
+  }
+};
+
+export const resetPasswordSubmit = async (password: string, token: string) => {
+  try {
+    await auth.api.resetPassword({
+      body: {
+        newPassword: password,
+        token,
+      },
+    });
+    return { success: true };
+  } catch (error: unknown) {
+    const message = (error as Error)?.message || "";
+    return { error: message || "Failed to reset password. The link may have expired." };
+  }
+};
+
