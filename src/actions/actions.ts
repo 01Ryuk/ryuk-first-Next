@@ -5,6 +5,9 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "../generated/prisma";
 import { auth } from "../lib/auth";
 import { headers } from "next/headers";
+import { Resend } from "resend";
+
+const resend =new Resend(process.env.RESEND_API_KEY);
 
 // --- Post Actions ---
 
@@ -129,7 +132,7 @@ export const signIn = async (email: string, password: string) => {
       body: { email, password },
     });
   } catch (error: unknown) {
-    return { error: "Invalid email or password" };
+    return { error: error instanceof Error ? error.message : "Failed to sign in" };
   }
   redirect("/dashboard");
 };
