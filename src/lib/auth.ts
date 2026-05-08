@@ -3,7 +3,11 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 import { nextCookies } from "better-auth/next-js";
 import { sendEmail } from "./email";
-import { verificationEmailTemplate } from "./email-templates";
+import {
+  verificationEmailTemplate,
+  resetPasswordEmailTemplate,
+  welcomeEmailTemplate,
+} from "./email-templates";
 
 export const auth = betterAuth({
   emailVerification: {
@@ -15,6 +19,13 @@ export const auth = betterAuth({
       });
     },
     sendOnSignUp: true,
+    afterEmailVerification: async (user) => {
+      await sendEmail({
+        to: user.email,
+        subject: "Welcome to RYUK 🎉",
+        html: welcomeEmailTemplate(user.name),
+      });
+    },
   },
 
   database: prismaAdapter(prisma, {
@@ -24,6 +35,13 @@ export const auth = betterAuth({
     enabled: true,
     autoSignIn: false,
     requireEmailVerification: true,
+    sendResetPassword: async ({ user, url }) => {
+      await sendEmail({
+        to: user.email,
+        subject: "Reset your RYUK password",
+        html: resetPasswordEmailTemplate(url, user.name),
+      });
+    },
   },
   socialProviders: {
     google: {
@@ -40,7 +58,7 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       enabled: true, // 👈 enables account linking
-      trustedProviders: ["google", "github"], // 👈 these providers are trusted to link automatically
+      trustedProviders: ["google", "github"], //these providers are trusted to link automatically
     },
   },
   plugins: [nextCookies()],
