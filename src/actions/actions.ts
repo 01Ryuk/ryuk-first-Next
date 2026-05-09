@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "../generated/prisma";
 import { auth } from "../lib/auth";
 import { headers } from "next/headers";
+// import { APIError } from "better-auth/api";
 
 // Note: email is handled via better-auth sendResetPassword callback
 
@@ -92,6 +93,14 @@ export async function deletePost(id: string, formData: FormData) {
 
 export const signUp = async (email: string, password: string, name: string) => {
   try {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return { error: "An account with this email already exists" };
+    }
+
     await auth.api.signUpEmail({
       body: { email, password, name },
     });
@@ -100,6 +109,7 @@ export const signUp = async (email: string, password: string, name: string) => {
       error instanceof Error ? error.message : "Failed to create account";
     return { error: message };
   }
+
   redirect("/auth/login");
 };
 
@@ -112,10 +122,10 @@ export const signIn = async (email: string, password: string) => {
 
   if (user) {
     const hasSocialAccount = user.accounts.some(
-      (account) => account.providerId !== "credential"
+      (account) => account.providerId !== "credential",
     );
     const hasCredentialAccount = user.accounts.some(
-      (account) => account.providerId === "credential"
+      (account) => account.providerId === "credential",
     );
 
     if (hasSocialAccount && !hasCredentialAccount) {
@@ -131,7 +141,9 @@ export const signIn = async (email: string, password: string) => {
       body: { email, password },
     });
   } catch (error: unknown) {
-    return { error: error instanceof Error ? error.message : "Failed to sign in" };
+    return {
+      error: error instanceof Error ? error.message : "Failed to sign in",
+    };
   }
   redirect("/dashboard");
 };
@@ -182,7 +194,8 @@ export const resetPasswordSubmit = async (password: string, token: string) => {
     return { success: true };
   } catch (error: unknown) {
     const message = (error as Error)?.message || "";
-    return { error: message || "Failed to reset password. The link may have expired." };
+    return {
+      error: message || "Failed to reset password. The link may have expired.",
+    };
   }
 };
-
