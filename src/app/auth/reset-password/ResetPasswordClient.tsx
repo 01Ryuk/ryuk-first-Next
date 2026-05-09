@@ -131,7 +131,7 @@ export default function ResetPasswordPage() {
                   </Link>
                 </div>
               )}
-
+              
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* New password */}
                 <div className="space-y-1.5">
