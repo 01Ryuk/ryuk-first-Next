@@ -17,7 +17,7 @@ export function proxy(request: NextRequest) {
   ];
 
   // auth routes — logged in users shouldn't access these
-  const authRoutes = ["/auth/login", "/auth/signup"];
+  const authRoutes = ["/auth/login", "/auth/signup", "/auth/forgot-password", "/auth/reset-password"];
 
   const isProtectedRoute =
     protectedRoutes.some((route) => pathname.startsWith(route)) ||
