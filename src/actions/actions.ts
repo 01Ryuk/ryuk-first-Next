@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "../generated/prisma";
 import { auth } from "../lib/auth";
 import { headers } from "next/headers";
+import { uploadImage } from "../lib/cloudinary";
 // import { APIError } from "better-auth/api";
 
 // Note: email is handled via better-auth sendResetPassword callback
@@ -17,7 +18,11 @@ export async function createPost(formData: FormData) {
     headers: await headers(),
   });
   if (!session) redirect("/auth/login");
-
+     let imageUrl: string | null = null;
+  const imageFile = formData.get("image") as File;
+  if (imageFile && imageFile.size > 0) {
+    imageUrl = await uploadImage(imageFile);
+  }
   try {
     await prisma.post.create({
       data: {
@@ -28,6 +33,7 @@ export async function createPost(formData: FormData) {
         content: formData.get("content") as string,
         published: true,
         authorId: session!.user.id, //tie each posts to the logged in user
+        imageUrl: imageUrl,
       },
     });
   } catch (error) {
