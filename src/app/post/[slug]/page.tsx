@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { Pencil } from "lucide-react";
 import { deletePost } from "@/src/actions/actions";
 import { Trash2 } from "lucide-react";
+import Image from "next/image";
 
 export default async function PostPage({
   params,
@@ -26,6 +27,7 @@ export default async function PostPage({
       content: true,
       createdAt: true,
       authorId: true,
+      image: true,
       author: {
         select: { name: true },
       },
@@ -45,9 +47,20 @@ export default async function PostPage({
         </h1>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span>By <span className="font-medium text-gray-700">{post.author?.name ?? "Unknown"}</span></span>
+            <span>
+              By{" "}
+              <span className="font-medium text-gray-700">
+                {post.author?.name ?? "Unknown"}
+              </span>
+            </span>
             <span>·</span>
-            <span>{new Date(post.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</span>
+            <span>
+              {new Date(post.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
           </div>
 
           {/* edit/delete only for author */}
@@ -73,6 +86,19 @@ export default async function PostPage({
 
       {/* Divider */}
       <hr className="border-gray-200 mb-8" />
+
+      {/* Cover image — only shows if post has one */}
+      {post.image && (
+        <div className="relative w-full h-72 rounded-xl overflow-hidden mb-8">
+          <Image
+            src={post.image}
+            alt={post.title}
+            fill
+            className="object-cover"
+            priority //tells Next.js to load this image first since it's above the fold
+          />
+        </div>
+      )}
 
       {/* Content */}
       <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">
