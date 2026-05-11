@@ -1,9 +1,18 @@
 import { deletePost } from "@/src/actions/actions";
 import { prisma } from "@/src/lib/prisma";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, MessageCircle, Heart } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Pencil,
+  Trash2,
+  MessageCircle,
+  Heart,
+} from "lucide-react";
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
+import Image from "next/image";
 
 const POSTS_PER_PAGE = 10;
 
@@ -17,7 +26,10 @@ function formatDate(date: Date) {
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
 
-  return new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 // helper to get initials for the avatar placeholder
@@ -51,6 +63,7 @@ export default async function page({
         content: true,
         createdAt: true,
         authorId: true,
+        image: true,
         author: {
           select: { name: true },
         },
@@ -68,7 +81,6 @@ export default async function page({
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-
       {/* top bar */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-bold text-gray-900">Feed</h1>
@@ -86,9 +98,10 @@ export default async function page({
           const authorName = post.author?.name ?? "Unknown";
           const isAuthor = post.authorId === userId;
           // trim content to 120 chars for the excerpt
-          const excerpt = post.content.length > 120
-            ? post.content.slice(0, 120) + "..."
-            : post.content;
+          const excerpt =
+            post.content.length > 120
+              ? post.content.slice(0, 120) + "..."
+              : post.content;
 
           return (
             <div
@@ -103,9 +116,13 @@ export default async function page({
                     {getInitials(authorName)}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{authorName}</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {authorName}
+                    </p>
                     {/* formatDate turns the raw date into "2h ago" style */}
-                    <p className="text-xs text-gray-400">{formatDate(post.createdAt)}</p>
+                    <p className="text-xs text-gray-400">
+                      {formatDate(post.createdAt)}
+                    </p>
                   </div>
                 </div>
 
@@ -132,12 +149,24 @@ export default async function page({
 
               {/* post title + excerpt — whole block links to the post */}
               <Link href={`/post/${post.slug}`}>
+                {/* show thumbnail if post has an image */}
+                {post.image && (
+                  <div className="relative w-full h-40 rounded-lg overflow-hidden mb-3">
+                    <Image
+                      src={post.image}
+                      alt={post.title}
+                      fill
+                      className="object-cover hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                )}
                 <h2 className="font-bold text-gray-900 mb-1 hover:text-indigo-600 transition-colors">
                   {post.title}
                 </h2>
-                <p className="text-sm text-gray-500 leading-relaxed">{excerpt}</p>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  {excerpt}
+                </p>
               </Link>
-
               {/* card footer — placeholder counts for likes/comments */}
               <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100">
                 <button className="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors text-sm">
