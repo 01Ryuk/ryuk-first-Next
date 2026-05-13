@@ -33,7 +33,7 @@ export async function createPost(formData: FormData) {
         content: formData.get("content") as string,
         published: true,
         authorId: session!.user.id, //tie each posts to the logged in user
-        imageUrl: imageUrl,
+        image: imageUrl,
       },
     });
   } catch (error) {
@@ -66,6 +66,16 @@ export async function edit(id: string, formData: FormData) {
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-");
 
+    let imageUrl: string | null | undefined = undefined;
+    const removeImage = formData.get("removeImage") === "true";
+  const imageFile = formData.get("image") as File;
+
+  if (removeImage) {
+    imageUrl = null; // This will signal the action to remove the image
+  } else if (imageFile && imageFile.size > 0) {
+    imageUrl = await uploadImage(imageFile);
+  }
+
   await prisma.post.update({
     where: { id },
     data: {
@@ -73,7 +83,8 @@ export async function edit(id: string, formData: FormData) {
       slug: newSlug,
       content: formData.get("content") as string,
       published: true,
-    },
+      ...(imageUrl !== undefined && { image: imageUrl }), // Only update the image field if a new image is uploaded or if it should be removed
+     },
   });
 
   revalidatePath("/post");
