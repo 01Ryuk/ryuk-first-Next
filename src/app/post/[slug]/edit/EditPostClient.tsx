@@ -1,17 +1,14 @@
 "use client";
-import {useState} from "react";
-import {edit} from "@/src/actions/actions";
+import { useState } from "react";
+import { edit } from "@/src/actions/actions";
 import Image from "next/image";
+import { prisma } from "@/src/lib/prisma";
 
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  authorId: string;
-  image?: string | null;
-}
 
-export default  function EditPostClient({ post }: { post: Post }) {
+type Post = NonNullable<Awaited<ReturnType<typeof prisma.post.findUnique>>>;
+
+
+export default function EditPostClient({ post }: { post: Post }) {
   const [preview, setPreview] = useState<string | null>(post.image ?? null);
   const [isLoading, setIsLoading] = useState(false);
   const [removeImage, setRemoveImage] = useState(false);
@@ -28,18 +25,24 @@ export default  function EditPostClient({ post }: { post: Post }) {
     }
   };
 
-   const handleRemoveImage = () => {
+  const handleRemoveImage = () => {
     setPreview(null);
     setRemoveImage(true);
   };
-   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
+    try {
     const formData = new FormData(e.currentTarget);
     //pass removeimage flag so the action removes the image
-      formData.append("removeImage", removeImage.toString());
-      await edit(post.id, formData);
-      setIsLoading(false);
+    formData.append("removeImage", removeImage.toString());
+    await edit(post.id, formData);
+    } catch (err) {
+      if (err instanceof Error && err.message === "NEXT_REDIRECT") return;
+        console.error("Edit post error:", err);
+      } finally {
+        setIsLoading(false);
+      }
   };
 
   return (
@@ -47,7 +50,7 @@ export default  function EditPostClient({ post }: { post: Post }) {
       <h1 className="text-3xl capitalize font-bold">Edit Post</h1>
       <form
         onSubmit={handleSubmit}
-         className="flex flex-col gap-y-2 max-w-md mx-auto mt-8"
+        className="flex flex-col gap-y-2 max-w-md mx-auto mt-8"
       >
         <input
           type="text"
@@ -104,8 +107,8 @@ export default  function EditPostClient({ post }: { post: Post }) {
           disabled={isLoading}
           className="bg-blue-500 text-white px-4 py-2 rounded-sm"
         >
-            {isLoading ? "Updating..." : "Save Changes"}
-                    </button>
+          {isLoading ? "Updating..." : "Save Changes"}
+        </button>
       </form>
     </div>
   );
