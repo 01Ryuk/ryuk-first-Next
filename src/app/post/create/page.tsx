@@ -21,9 +21,14 @@ export default function CreatePostPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const formData = new FormData(e.currentTarget);
-    await createPost(formData);
-    setIsLoading(false);
+    try {
+      const formData = new FormData(e.currentTarget);
+      await createPost(formData);
+    } catch (error) {
+      console.error("Error creating post:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
