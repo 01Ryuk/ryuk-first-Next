@@ -6,7 +6,6 @@ import { Prisma } from "../generated/prisma";
 import { auth } from "../lib/auth";
 import { headers } from "next/headers";
 import { uploadImage } from "../lib/cloudinary";
-// import { APIError } from "better-auth/api";
 
 // Note: email is handled via better-auth sendResetPassword callback
 
