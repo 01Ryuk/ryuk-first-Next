@@ -13,6 +13,8 @@ import {
 import { auth } from "@/src/lib/auth";
 import { headers } from "next/headers";
 import Image from "next/image";
+import Avatar from "@/src/components/Avatar";
+
 
 const POSTS_PER_PAGE = 10;
 
@@ -65,7 +67,7 @@ export default async function page({
         authorId: true,
         image: true,
         author: {
-          select: { name: true },
+          select: { name: true, image: true },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -111,10 +113,7 @@ export default async function page({
               {/* card header — avatar + name + date */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  {/* avatar placeholder using initials — swap for real image later */}
-                  <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-sm font-semibold flex-shrink-0">
-                    {getInitials(authorName)}
-                  </div>
+                  <Avatar name={authorName} image={post.author?.image} />
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
                       {authorName}
@@ -156,6 +155,7 @@ export default async function page({
                       src={post.image}
                       alt={post.title}
                       fill
+                      sizes="(max-width: 768px) 100vw, 672px"
                       className="object-cover hover:scale-105 transition-transform duration-300"
                     />
                   </div>
