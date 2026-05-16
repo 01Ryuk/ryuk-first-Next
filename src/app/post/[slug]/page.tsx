@@ -94,8 +94,10 @@ export default async function PostPage({
             src={post.image}
             alt={post.title}
             fill
+            sizes="(max-width: 768px) 100vw, 672px"
             className="object-cover"
             priority //tells Next.js to load this image first since it's above the fold
+            loading="eager"
           />
         </div>
       )}
