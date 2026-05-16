@@ -1,10 +1,14 @@
+import { auth } from "@/src/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import AccountClient from "./AccountClient";
 
+export default async function Account() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-export default function Account() {
-  return (
-    <div>
-      <h1>Account</h1>
-    </div>
-  );
+  if (!session) redirect("/auth/login");
+
+  return <AccountClient session={session} />;
 }
-
