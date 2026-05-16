@@ -72,6 +72,7 @@ export default function CreatePostPage() {
                 src={preview}
                 alt="Preview"
                 fill
+                sizes="(max-width: 768px) 100vw, 448px"
                 className="object-cover"
               />
             </div>
