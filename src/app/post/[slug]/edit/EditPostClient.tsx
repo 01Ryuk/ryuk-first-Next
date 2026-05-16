@@ -4,9 +4,7 @@ import { edit } from "@/src/actions/actions";
 import Image from "next/image";
 import { prisma } from "@/src/lib/prisma";
 
-
 type Post = NonNullable<Awaited<ReturnType<typeof prisma.post.findUnique>>>;
-
 
 export default function EditPostClient({ post }: { post: Post }) {
   const [preview, setPreview] = useState<string | null>(post.image ?? null);
@@ -33,16 +31,16 @@ export default function EditPostClient({ post }: { post: Post }) {
     e.preventDefault();
     setIsLoading(true);
     try {
-    const formData = new FormData(e.currentTarget);
-    //pass removeimage flag so the action removes the image
-    formData.append("removeImage", removeImage.toString());
-    await edit(post.id, formData);
+      const formData = new FormData(e.currentTarget);
+      //pass removeimage flag so the action removes the image
+      formData.append("removeImage", removeImage.toString());
+      await edit(post.id, formData);
     } catch (err) {
       if (err instanceof Error && err.message === "NEXT_REDIRECT") return;
-        console.error("Edit post error:", err);
-      } finally {
-        setIsLoading(false);
-      }
+      console.error("Edit post error:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -81,6 +79,7 @@ export default function EditPostClient({ post }: { post: Post }) {
                 src={preview}
                 alt="Preview"
                 fill
+                sizes="(max-width: 768px) 100vw, 448px"
                 className="object-cover"
               />
               {/* remove image button */}
