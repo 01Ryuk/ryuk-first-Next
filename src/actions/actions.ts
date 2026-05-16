@@ -215,3 +215,33 @@ export const resetPasswordSubmit = async (password: string, token: string) => {
     };
   }
 };
+
+export const updateProfile = async (formData: FormData) => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) redirect("/auth/login");
+
+  // handle image upload if a new image was selected
+  let imageUrl: string | undefined = undefined;
+  const imageFile = formData.get("image") as File;
+  if (imageFile && imageFile.size > 0) {
+    imageUrl = await uploadImage(imageFile);
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        name: formData.get("name") as string,
+        // only update image if a new one was uploaded
+        ...(imageUrl && { image: imageUrl }),
+      },
+    });
+
+    return { success: true };
+  } catch (error: unknown) {
+    const message = (error as Error)?.message || "";
+    return { error: message || "Failed to update profile" };
+  }
+};
