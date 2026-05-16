@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2, Plus, FileText } from "lucide-react";
+import Avatar from "@/src/components/Avatar";
+
 
 type Session = typeof auth.$Infer.Session;
 
@@ -39,17 +41,10 @@ export default function DashboardClientPage({
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <main className="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-
         {/* Header — welcome + avatar + sign out */}
         <div className="bg-white rounded-lg shadow p-6 mb-6 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Image
-              src="/ryuk.png"
-              width={48}
-              height={48}
-              alt={user.name}
-              className="rounded-full h-12 w-12 object-cover"
-            />
+            <Avatar name={user.name} image={user.image} size="md" />
             <div>
               {/* greeting uses the real user name from session */}
               <h1 className="text-2xl font-bold text-gray-900">
@@ -119,14 +114,20 @@ export default function DashboardClientPage({
             <div className="text-center py-12 text-gray-400">
               <FileText size={40} className="mx-auto mb-3 opacity-40" />
               <p>You haven&apos;t written any posts yet.</p>
-              <Link href="/post/create" className="text-indigo-500 hover:underline text-sm mt-2 inline-block">
+              <Link
+                href="/post/create"
+                className="text-indigo-500 hover:underline text-sm mt-2 inline-block"
+              >
                 Write your first post
               </Link>
             </div>
           ) : (
             <ul className="divide-y divide-gray-100">
               {posts.map((post) => (
-                <li key={post.id} className="flex items-center justify-between py-3">
+                <li
+                  key={post.id}
+                  className="flex items-center justify-between py-3"
+                >
                   <div>
                     <p className="font-medium text-gray-900">{post.title}</p>
                     {/* format the date nicely for each post row */}
@@ -175,7 +176,6 @@ export default function DashboardClientPage({
             Manage Account
           </Link>
         </div>
-
       </main>
     </div>
   );
