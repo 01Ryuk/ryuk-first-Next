@@ -245,3 +245,90 @@ export const updateProfile = async (formData: FormData) => {
     return { error: message || "Failed to update profile" };
   }
 };
+
+// — Comment Actions —
+
+export const addComment = async (postId: string, formData: FormData) => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) redirect("/auth/login");
+
+  const content = formData.get("content") as string;
+  if (!content || content.trim() === "") return { error: "Comment cannot be empty" };
+
+  try {
+    await prisma.comment.create({
+      data: {
+        content: content.trim(),
+        authorId: session.user.id,
+        postId,
+      },
+    });
+    revalidatePath("/post");
+  } catch (error: unknown) {
+    const message = (error as Error)?.message || "";
+    return { error: message || "Failed to add comment" };
+  }
+};
+
+export const deleteComment = async (commentId: string) => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) redirect("/auth/login");
+
+  const comment = await prisma.comment.findUnique({ where: { id: commentId } });
+  if (!comment) return { error: "Comment not found" };
+
+  // only the comment author can delete it
+  if (comment.authorId !== session.user.id) return { error: "Unauthorized" };
+
+  try {
+    await prisma.comment.delete({ where: { id: commentId } });
+    revalidatePath("/post");
+  } catch (error: unknown) {
+    const message = (error as Error)?.message || "";
+    return { error: message || "Failed to delete comment" };
+  }
+};
+
+// — Like Actions —
+
+export const toggleLike = async (postId: string) => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) return { error: "You must be logged in to like a post" };
+
+  // check if the user has already liked this post
+  const existingLike = await prisma.like.findUnique({
+    where: {
+      authorId_postId: { //this is the unique constraint we defined in schema
+        authorId: session.user.id,
+        postId,
+      },
+    },
+  });
+
+  if (existingLike) {
+    // already liked — unlike it
+    await prisma.like.delete({ where: { id: existingLike.id } });
+    return { liked: false };
+  } else {
+    // not liked yet — like it
+    // first check if the user is trying to like their own post
+    const post = await prisma.post.findUnique({ where: { id: postId } });
+    if (post?.authorId === session.user.id) {
+      return { error: "You cannot like your own post" };
+    }
+
+    await prisma.like.create({
+      data: {
+        authorId: session.user.id,
+        postId,
+      },
+    });
+    return { liked: true };
+  }
+};
